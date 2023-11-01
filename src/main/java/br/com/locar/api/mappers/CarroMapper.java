@@ -11,6 +11,7 @@ public class CarroMapper {
 
     public CarroModel entityToModel(Carro entity) {
         return new CarroModel()
+                .setId(entity.getIdCarro())
                 .setCor(entity.getCor().name())
                 .setAno(entity.getAno())
                 .setPlaca(entity.getPlaca())

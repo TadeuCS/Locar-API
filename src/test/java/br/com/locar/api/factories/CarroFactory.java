@@ -15,10 +15,15 @@ public class CarroFactory {
                 .setAno(LocalDate.now().getYear());
     }
 
-    public static Carro createEntity() {
+    public static Carro createEntity(String placa) {
         return new Carro()
                 .setModelo(EModelo.GOL_G8)
                 .setCor(ECor.BRANCO)
-                .setAno(LocalDate.now().getYear());
+                .setAno(LocalDate.now().getYear())
+                .setPlaca(placa);
+    }
+
+    public static Carro createEntity() {
+        return createEntity(null);
     }
 }

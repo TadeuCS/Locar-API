@@ -1,5 +1,6 @@
 package br.com.locar.api.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -7,6 +8,8 @@ import java.math.BigDecimal;
 
 @Data
 public class CarroModel {
+    @JsonIgnore
+    private Integer id;
     @NotNull(message = "Campo obrigatório não informado")
     private String cor;
     @NotNull(message = "Campo obrigatório não informado")
@@ -16,6 +19,11 @@ public class CarroModel {
     @NotNull(message = "Campo obrigatório não informado")
     private String placa;
     private BigDecimal quilometragem=BigDecimal.ZERO;
+
+    public CarroModel setId(Integer id) {
+        this.id = id;
+        return this;
+    }
 
     public CarroModel setCor(String cor) {
         this.cor = cor;

@@ -74,10 +74,16 @@ public class CarroService {
     }
 
     public Page<CarroModel> buscarTodosSeminovos(Pageable pageable) {
-        Page<Carro> pageableResult = pageableCarroRepository
-                .findByAnoBeforeOrQuilometragemGreaterThanEqual(pageable, LocalDate.now().getYear(), MAX_QUILOMETRAGEM_PARA_LOCACAO);
+        return buscarTodosSeminovos(pageable, MAX_QUILOMETRAGEM_PARA_LOCACAO);
+    }
+
+    public Page<CarroModel> buscarTodosSeminovos(Pageable pageable, BigDecimal maxQuilometragem) {
+//        Page<Carro> pageableResult = pageableCarroRepository
+//                .findByAnoBeforeOrQuilometragemGreaterThanEqual(pageable, LocalDate.now().getYear(), MAX_QUILOMETRAGEM_PARA_LOCACAO);
+        Page<Carro> pageableResult = pageableCarroRepository.findAll(pageable);
         List<CarroModel> models = pageableResult
                 .stream()
+                .filter(carro -> carro.getAno()<LocalDate.now().getYear() || carro.getQuilometragem().compareTo(maxQuilometragem)>=0)
                 .map(carroMapper::entityToModel)
                 .toList();
         return new PageImpl<>(models, pageableResult.getPageable(), pageableResult.getTotalPages());
@@ -85,7 +91,6 @@ public class CarroService {
 
     public void deletarCarroPorPlaca(String placa) {
         CarroModel carroModel = buscarPorPlaca(placa);
-        Carro carroSalvo = carroMapper.modelToEntity(carroModel);
-        carroRepository.delete(carroSalvo);
+        carroRepository.deleteById(carroModel.getId());
     }
 }
