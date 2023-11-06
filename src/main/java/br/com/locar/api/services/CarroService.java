@@ -28,7 +28,7 @@ public class CarroService {
 
     private final PageableCarroRepository pageableCarroRepository;
 
-    private final CarroMapper carroMapper;
+    public final CarroMapper carroMapper;
 
     public CarroModel salvar(CarroModel model) {
         boolean existeCarroRegistrado = existeCarroRegistradoPorPlaca(model.getPlaca());
@@ -78,8 +78,6 @@ public class CarroService {
     }
 
     public Page<CarroModel> buscarTodosSeminovos(Pageable pageable, BigDecimal maxQuilometragem) {
-//        Page<Carro> pageableResult = pageableCarroRepository
-//                .findByAnoBeforeOrQuilometragemGreaterThanEqual(pageable, LocalDate.now().getYear(), MAX_QUILOMETRAGEM_PARA_LOCACAO);
         Page<Carro> pageableResult = pageableCarroRepository.findAll(pageable);
         List<CarroModel> models = pageableResult
                 .stream()
@@ -89,7 +87,7 @@ public class CarroService {
         return new PageImpl<>(models, pageableResult.getPageable(), pageableResult.getTotalPages());
     }
 
-    public void deletarCarroPorPlaca(String placa) {
+    public void deletarCarroPorPlaca(String placa) throws NotFoundRegitreException{
         CarroModel carroModel = buscarPorPlaca(placa);
         carroRepository.deleteById(carroModel.getId());
     }

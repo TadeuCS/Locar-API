@@ -8,15 +8,15 @@ import br.com.locar.api.models.CarroModel;
 import br.com.locar.api.repositories.CarroRepository;
 import br.com.locar.api.repositories.PageableCarroRepository;
 import jakarta.persistence.EntityExistsException;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -29,106 +29,105 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
-@SpringBootTest
+@ExtendWith(value = MockitoExtension.class)
 class CarroServiceTest {
 
-    private CarroService carroService;
-
+    @Mock
     private CarroRepository carroRepository;
 
+    @Mock
     private PageableCarroRepository pageableCarroRepository;
 
-    private CarroMapper carroMapper;
+    private static CarroMapper mapper;
+
+    private CarroService carroService;
     private List<Carro> carros;
+    private CarroModel carroModel;
+    private Carro carroEntity;
+
+    @BeforeAll
+    static void setUp(){
+        mapper = new CarroMapper();
+    }
 
     @BeforeEach
     void setUpEach() {
-        System.out.println("Antes de cada Execução");
-        carroRepository = Mockito.mock(CarroRepository.class);
-        pageableCarroRepository = Mockito.mock(PageableCarroRepository.class);
-        carroMapper = new CarroMapper();
-        carroService = new CarroService(carroRepository,pageableCarroRepository, carroMapper);
         carros=new ArrayList<>();
+        carroModel = CarroFactory.createModel();
+        carroEntity = CarroFactory.createEntity();
+        carroService = new CarroService(carroRepository, pageableCarroRepository, mapper);
     }
 
     @AfterEach
     void clearUpEach(){
-        System.out.println("Após cada Execução");
-    }
-
-    @BeforeAll
-    static void setUp() {
-        System.out.println("Antes de todas execuções");
     }
 
     @AfterAll
     static void clearUp(){
-        System.out.println("Após todas execuções");
     }
 
     @Test
     void deveriaSalvarUmCarro(){
         //given
-        CarroModel carroModel = CarroFactory.createModel();
-        Carro carroSalvo = CarroFactory.createEntity();
-        Mockito.when(carroRepository.findByPlaca(anyString())).thenReturn(Optional.empty());
-        Mockito.when(carroRepository.save(any(Carro.class))).thenReturn(carroSalvo);
+        carroModel.setPlaca("XPTO");
+        when(carroRepository.findByPlaca(anyString())).thenReturn(Optional.empty());
+        when(carroRepository.save(any(Carro.class))).thenReturn(carroEntity);
 
         //when
         CarroModel carroRetornado = carroService.salvar(carroModel);
 
         //then
-        Assertions.assertThat(carroRetornado).isNotNull();
+        assertThat(carroRetornado).isNotNull();
     }
 
     @Test
     void deveriaRetonarUmaExcecaoAoSalvarUmCarroComPlacaJaExistente(){
-        CarroModel carroModel = CarroFactory.createModel();
         carroModel.setPlaca("XPTO");
-        Carro carro = CarroFactory.createEntity();
-        Mockito.when(carroRepository.findByPlaca(anyString())).thenReturn(Optional.of(carro));
 
-        Assertions.assertThatExceptionOfType(EntityExistsException.class)
+        when(carroRepository.findByPlaca(anyString())).thenReturn(Optional.of(carroEntity));
+
+        assertThatExceptionOfType(EntityExistsException.class)
                 .isThrownBy(() -> carroService.salvar(carroModel));
     }
 
     @Test
     void deveriaAtualizarOsDadosDoCarroCasoEleJaExista() {
-        CarroModel carroModel = CarroFactory.createModel();
-        carroModel.setPlaca("XPTO");
-        Carro carro = CarroFactory.createEntity();
-        Mockito.when(carroRepository.findByPlaca(anyString())).thenReturn(Optional.of(carro));
-        Mockito.when(carroRepository.save(any(Carro.class))).thenReturn(carro);
+        String placa = "XPTO";
+        
+        carroModel.setPlaca(placa);
+        carroEntity.setPlaca(placa);
+        doReturn(Optional.of(carroEntity)).when(carroRepository).findByPlaca(anyString());
+        doReturn(carroEntity).when(carroRepository).save(any(Carro.class));
 
         CarroModel carroRetornado = carroService.atualizar(carroModel);
-        Assertions.assertThat(carroRetornado).isNotNull();
+        assertThat(carroRetornado).isNotNull();
     }
 
     @Test
-    @DisplayName("Neste teste podemos ver que utilizando spy ele não da erro mesmo não " +
-            "declarando o mock do método findByPlaca do carroRepository")
+    @DisplayName("Neste teste podemos ver que utilizando spy ele nao da erro mesmo nao " +
+            "declarando o mock do metodo findByPlaca do carroRepository")
     void deveriaRetornarErroAoTentarAtualizarOsDadosDoCarroCasoEleNaoExista() {
-        carroService = Mockito.spy(this.carroService);
-        CarroModel carroModel = CarroFactory.createModel();
         carroModel.setPlaca("XPTO");
+        carroService = spy(this.carroService);
         doThrow(NotFoundRegitreException.class).when(carroService).buscarPorPlaca(anyString());
 
-        Assertions.assertThatExceptionOfType(NotFoundRegitreException.class)
+        assertThatExceptionOfType(NotFoundRegitreException.class)
                 .isThrownBy(() -> carroService.atualizar(carroModel));
     }
 
     @Test
 //    @Timeout(value = 2, unit = SECONDS)
     void deveriaRetornarUmaListaContendoUmCarro() {
-        Carro carro = CarroFactory.createEntity();
-        carros.add(carro);
+        carros.add(carroEntity);
         Pageable pageable = PageRequest.of(0,2);
         Page<Carro> pagesRetornadas = new PageImpl<>(carros, pageable, 1);
         when(pageableCarroRepository.findAll(any(Pageable.class))).thenReturn(pagesRetornadas);
-        Assertions.assertThat(carroService.listarTodos(pageable)).isNotEmpty();
+        assertThat(carroService.listarTodos(pageable)).isNotEmpty();
     }
 
     /*
@@ -141,31 +140,30 @@ class CarroServiceTest {
     void deveriaRetornarUmCarroQueContenhaPlacaInformada() {
         //given
         String placa = "HBJ-5579";
-        Carro expected = CarroFactory.createEntity(placa);
-        Mockito.when(carroRepository.findByPlaca(placa)).thenReturn(Optional.of(expected));
+        when(carroRepository.findByPlaca(placa)).thenReturn(Optional.of(carroEntity));
         //when
         CarroModel actual = carroService.buscarPorPlaca(placa);
 
         //then
-        Assertions.assertThat(actual).isNotNull();
-        Assertions.assertThat(actual.getPlaca()).isEqualTo(expected.getPlaca());
+        assertThat(actual).isNotNull();
+        assertThat(actual.getPlaca()).isEqualTo(carroEntity.getPlaca());
     }
 
     @Test
     void deveriaRetornarUmaExcecaoQueContenhaPlacaInformadaAoTentarEncontrarUmCarroComEstaPlaca() {
         //given
         String placa = "HBJ-5579";
-        Mockito.when(carroRepository.findByPlaca(placa)).thenReturn(Optional.empty());
+        when(carroRepository.findByPlaca(placa)).thenReturn(Optional.empty());
 
         //then - when
-        Assertions.assertThatExceptionOfType(NotFoundRegitreException.class)
+        assertThatExceptionOfType(NotFoundRegitreException.class)
                 .isThrownBy(()-> carroService.buscarPorPlaca(placa));
     }
 
     /*
         Dado que seja buscando os caracterizados como seminovos,
         Quando eu pesquisar no banco de dados
-        Então eu quero que retorne um lista contendo os carros que tem mais de 12 meses de fabricação,
+        Então eu quero que retorne uma lista contendo os carros que tenha mais de 12 meses de fabricação,
      */
     @Test
     void deveriaRetornarUmaListaContendoCarrosQueEstaoComMaisDeDozeMesesDeFabricacao() {
@@ -187,9 +185,9 @@ class CarroServiceTest {
         Page<CarroModel> actual = carroService.buscarTodosSeminovos(pageable);
 
         //then
-        Assertions.assertThat(actual).isNotNull();
-        Assertions.assertThat(actual.getContent()).hasSize(2);
-        Assertions.assertThat(actual.getContent().stream().map(CarroModel::getPlaca).toList()).doesNotContain(carro3.getPlaca());
+        assertThat(actual).isNotNull();
+        assertThat(actual.getContent()).hasSize(2);
+        assertThat(actual.getContent().stream().map(CarroModel::getPlaca).toList()).doesNotContain(carro3.getPlaca());
     }
 
     @Test
@@ -212,9 +210,9 @@ class CarroServiceTest {
         Page<CarroModel> actual = carroService.buscarTodosSeminovos(pageable, CarroService.MAX_QUILOMETRAGEM_PARA_LOCACAO);
 
         //then
-        Assertions.assertThat(actual).isNotNull();
-        Assertions.assertThat(actual.getContent()).hasSize(2);
-        Assertions.assertThat(actual.getContent().stream().map(CarroModel::getPlaca).toList()).containsSequence(Arrays.asList(carro2.getPlaca(), carro3.getPlaca()));
+        assertThat(actual).isNotNull();
+        assertThat(actual.getContent()).hasSize(2);
+        assertThat(actual.getContent().stream().map(CarroModel::getPlaca).toList()).containsSequence(Arrays.asList(carro2.getPlaca(), carro3.getPlaca()));
     }
 
     @Test
@@ -237,9 +235,9 @@ class CarroServiceTest {
         Page<CarroModel> actual = carroService.buscarTodosSeminovos(pageable);
 
         //then
-        Assertions.assertThat(actual).isNotNull();
-        Assertions.assertThat(actual.getContent()).hasSize(2);
-        Assertions.assertThat(actual.getContent().stream()
+        assertThat(actual).isNotNull();
+        assertThat(actual.getContent()).hasSize(2);
+        assertThat(actual.getContent().stream()
                         .map(CarroModel::getPlaca).toList())
                 .containsSequence(Arrays.asList(carro1.getPlaca(), carro3.getPlaca()));
     }
@@ -262,8 +260,8 @@ class CarroServiceTest {
         Page<CarroModel> actual = carroService.buscarTodosSeminovos(pageable, CarroService.MAX_QUILOMETRAGEM_PARA_LOCACAO);
 
         //then
-        Assertions.assertThat(actual).isNotNull();
-        Assertions.assertThat(actual.getContent()).isEmpty();
+        assertThat(actual).isNotNull();
+        assertThat(actual.getContent()).isEmpty();
     }
 
     /*
@@ -274,11 +272,11 @@ class CarroServiceTest {
     @Test
     void deveriaConseguirDeletarUmCarroQueExistaNoBancoDeDadosSemExcecoes() {
         //given
-        Carro carro = CarroFactory.createEntity("FAS-5461");
-        doReturn(Optional.of(carro)).when(carroRepository).findByPlaca(anyString());
+        carroEntity.setPlaca("FAS-5461");
+        doReturn(Optional.of(carroEntity)).when(carroRepository).findByPlaca(anyString());
 
         //when-then
-        Assertions.assertThatNoException().isThrownBy(()->carroService.deletarCarroPorPlaca(carro.getPlaca()));
+        assertThatNoException().isThrownBy(()->carroService.deletarCarroPorPlaca(carroEntity.getPlaca()));
 
     }
     /*
@@ -289,11 +287,11 @@ class CarroServiceTest {
     @Test
     void deveriaRetornarUmaExcecaoAoTentarDeletarUmCarroQueNaoExistaNoBancoDeDados() {
         //given
-        Carro carro = CarroFactory.createEntity("FAS-5461");
+        String placa = "FAS-5461";
         doReturn(Optional.empty()).when(carroRepository).findByPlaca(anyString());
 
         //when-then
-        Assertions.assertThatExceptionOfType(NotFoundRegitreException.class)
-                .isThrownBy(()->carroService.deletarCarroPorPlaca(carro.getPlaca()));
+        assertThatExceptionOfType(NotFoundRegitreException.class)
+                .isThrownBy(() -> carroService.deletarCarroPorPlaca(placa));
     }
 }

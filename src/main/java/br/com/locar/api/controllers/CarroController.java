@@ -26,37 +26,37 @@ public class CarroController {
     private final CarroService carroService;
 
     @PostMapping
-    public ResponseEntity<CarroModel> save(@Valid @RequestBody CarroModel carro){
+    public ResponseEntity<CarroModel> salvar(@Valid @RequestBody CarroModel carro){
         CarroModel carroModel = carroService.salvar(carro);
         return ResponseEntity.status(HttpStatus.CREATED).body(carroModel);
     }
 
     @PatchMapping
-    public ResponseEntity<CarroModel> update(@Valid @RequestBody CarroModel carro){
+    public ResponseEntity<CarroModel> atualizar(@Valid @RequestBody CarroModel carro){
         CarroModel carroModel = carroService.atualizar(carro);
         return ResponseEntity.ok(carroModel);
     }
 
     @DeleteMapping
-    public ResponseEntity<String> remover(@Valid @RequestBody String placa){
+    public ResponseEntity<String> remover(@Valid @RequestParam("placa") String placa){
         carroService.deletarCarroPorPlaca(placa);
         return ResponseEntity.ok("Carro removido com sucesso!");
     }
 
     @GetMapping("/")
-    public ResponseEntity<Page<CarroModel>> findAll(@PageableDefault(value = 10, page = 0) Pageable pageable){
+    public ResponseEntity<Page<CarroModel>> listarTodos(@PageableDefault(value = 10, page = 0) Pageable pageable){
         Page<CarroModel> carros = carroService.listarTodos(pageable);
         return ResponseEntity.ok(carros);
     }
 
     @GetMapping
-    public ResponseEntity<CarroModel> findOneByPlaca(@RequestParam("placa") String placa){
+    public ResponseEntity<CarroModel> buscarPorPlaca(@RequestParam("placa") String placa){
         CarroModel carro = carroService.buscarPorPlaca(placa);
         return ResponseEntity.ok(carro);
     }
 
     @GetMapping("seminovos")
-    public ResponseEntity<Page<CarroModel>> findAllSeminovos(@PageableDefault(value = 10, page = 0) Pageable pageable){
+    public ResponseEntity<Page<CarroModel>> listarTodosSeminovos(@PageableDefault(value = 10, page = 0) Pageable pageable){
         Page<CarroModel> carros = carroService.buscarTodosSeminovos(pageable);
         return ResponseEntity.ok(carros);
     }
