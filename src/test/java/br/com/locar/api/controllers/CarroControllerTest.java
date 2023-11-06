@@ -190,9 +190,9 @@ class CarroControllerTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<CarroModel> pagesRetornadas = new PageImpl<>(carros, pageable, 1);
 
-        when(service.listarTodos(any(Pageable.class))).thenReturn(pagesRetornadas);
+        when(service.buscarTodosSeminovos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/"))
+        this.mockMvc.perform(get("/carros/seminovos"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -204,9 +204,9 @@ class CarroControllerTest {
         Pageable pageable = PageRequest.of(0,2);
         Page<CarroModel> pagesRetornadas = new PageImpl<>(carros, pageable, 1);
 
-        when(service.listarTodos(any(Pageable.class))).thenReturn(pagesRetornadas);
+        when(service.buscarTodosSeminovos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/"))
+        this.mockMvc.perform(get("/carros/seminovos"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
