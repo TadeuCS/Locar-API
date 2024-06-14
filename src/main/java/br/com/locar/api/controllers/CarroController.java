@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController()
 @RequiredArgsConstructor
-@RequestMapping(path = "/carros")
+@RequestMapping(path = "/v1/carros")
 @Tag(name = "Carros", description = "Endpoints relacioandos a carros")
 public class CarroController {
 
