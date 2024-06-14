@@ -10,21 +10,23 @@ import org.springframework.stereotype.Component;
 public class CarroMapper {
 
     public CarroModel entityToModel(Carro entity) {
-        return new CarroModel()
-                .setId(entity.getIdCarro())
-                .setCor(entity.getCor().name())
-                .setAno(entity.getAno())
-                .setPlaca(entity.getPlaca())
-                .setModelo(entity.getModelo().getDescricao())
-                .setQuilometragem(entity.getQuilometragem());
+        return CarroModel.builder()
+                .id(entity.getIdCarro())
+                .cor(entity.getCor().name())
+                .ano(entity.getAno())
+                .placa(entity.getPlaca())
+                .modelo(entity.getModelo().getDescricao())
+                .quilometragem(entity.getQuilometragem())
+                .build();
     }
 
     public Carro modelToEntity(CarroModel model) {
-        return new Carro()
-                .setCor(ECor.valueOf(model.getCor()))
-                .setAno(model.getAno())
-                .setPlaca(model.getPlaca())
-                .setModelo(EModelo.getModeloByDescricao(model.getModelo()))
-                .setQuilometragem(model.getQuilometragem());
+        return Carro.builder()
+                .cor(ECor.valueOf(model.getCor()))
+                .ano(model.getAno())
+                .placa(model.getPlaca())
+                .modelo(EModelo.getModeloByDescricao(model.getModelo()))
+                .quilometragem(model.getQuilometragem())
+                .build();
     }
 }

@@ -8,12 +8,7 @@ import br.com.locar.api.models.CarroModel;
 import br.com.locar.api.repositories.CarroRepository;
 import br.com.locar.api.repositories.PageableCarroRepository;
 import jakarta.persistence.EntityExistsException;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -291,7 +287,14 @@ class CarroServiceTest {
         doReturn(Optional.empty()).when(carroRepository).findByPlaca(anyString());
 
         //when-then
-        assertThatExceptionOfType(NotFoundRegitreException.class)
-                .isThrownBy(() -> carroService.deletarCarroPorPlaca(placa));
+        assertThrowsExactly(NotFoundRegitreException.class,
+                () -> carroService.deletarCarroPorPlaca(placa));
+    }
+
+    @Test
+    void deveriaRetonarExcecaoQuandoInformadoUmModeloInvalidoParaOCarro() throws NotFoundRegitreException{
+        //given
+        carroModel.setModelo("MODELO_INVALIDO");
+        assertThrowsExactly(NotFoundRegitreException.class, () -> mapper.modelToEntity(carroModel));
     }
 }

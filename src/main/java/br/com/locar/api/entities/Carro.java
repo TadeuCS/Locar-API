@@ -3,19 +3,17 @@ package br.com.locar.api.entities;
 
 import br.com.locar.api.enums.ECor;
 import br.com.locar.api.enums.EModelo;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.math.BigDecimal;
-
+@Getter
+@Setter
+@Builder
 @Entity
 @Table(name = "Carro")
-@Data
 public class Carro {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,34 +30,9 @@ public class Carro {
     @Column(name = "QUILOMETRAGEM", nullable = false)
     private BigDecimal quilometragem;
 
-    public Carro setCor(ECor cor) {
-        this.cor = cor;
-        return this;
-    }
-
-    public Carro setModelo(EModelo modelo) {
-        this.modelo = modelo;
-        return this;
-    }
-
-    public Carro setAno(Integer ano) {
-        this.ano = ano;
-        return this;
-    }
-
-    public Carro setPlaca(String placa) {
-        this.placa = placa;
-        return this;
-    }
-
-    public Carro setQuilometragem(BigDecimal quilometragem) {
-        this.quilometragem = quilometragem;
-        return this;
-    }
-
     public BigDecimal getQuilometragem() {
         if(quilometragem==null){
-            quilometragem=BigDecimal.ZERO;
+            return BigDecimal.ZERO;
         }
         return quilometragem;
     }
