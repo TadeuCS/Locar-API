@@ -22,6 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 import java.util.List;
 
+import static br.com.locar.api.services.CarroService.MAX_QUILOMETRAGEM_PARA_LOCACAO;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(CarroController.class)
 class CarroControllerTest {
 
+    public static final String ROTA_CARROS = "/v1/carros";
     @MockBean
     private CarroService service;
 
@@ -63,7 +65,7 @@ class CarroControllerTest {
         carroModel.setId(1);
         when(service.salvar(any(CarroModel.class))).thenReturn(carroModel);
 
-        this.mockMvc.perform(post("/carros")
+        this.mockMvc.perform(post(ROTA_CARROS)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(requestBody))
                 .andDo(print())
@@ -77,7 +79,7 @@ class CarroControllerTest {
         String requestBody = objectMapper.writeValueAsString(carroModel);
         when(service.salvar(any(CarroModel.class))).thenThrow(EntityExistsException.class);
 
-        this.mockMvc.perform(post("/carros")
+        this.mockMvc.perform(post(ROTA_CARROS)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(requestBody))
                 .andDo(print())
@@ -91,7 +93,7 @@ class CarroControllerTest {
         carroModel.setId(1);
         when(service.atualizar(any(CarroModel.class))).thenReturn(carroModel);
 
-        this.mockMvc.perform(patch("/carros")
+        this.mockMvc.perform(patch(ROTA_CARROS)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(requestBody))
                 .andDo(print())
@@ -105,7 +107,7 @@ class CarroControllerTest {
         String requestBody = objectMapper.writeValueAsString(carroModel);
         when(service.atualizar(any(CarroModel.class))).thenThrow(NotFoundRegitreException.class);
 
-        this.mockMvc.perform(patch("/carros")
+        this.mockMvc.perform(patch(ROTA_CARROS)
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(requestBody))
                 .andDo(print())
@@ -116,7 +118,7 @@ class CarroControllerTest {
     void deveriaConseguirDeletarUmCarroCadastradoComSucesso() throws Exception {
         doNothing().when(service).deletarCarroPorPlaca(anyString());
 
-        this.mockMvc.perform(delete("/carros")
+        this.mockMvc.perform(delete(ROTA_CARROS)
                         .queryParam("placa", "HIZ-1234"))
                 .andDo(print())
                 .andExpect(status().isOk())
@@ -127,7 +129,7 @@ class CarroControllerTest {
     void deveriaRetornarUmaExcecaoAoTentarDeletarUmCarroNaoCadastrado() throws Exception {
         doThrow(NotFoundRegitreException.class).when(service).deletarCarroPorPlaca(anyString());
 
-        this.mockMvc.perform(delete("/carros")
+        this.mockMvc.perform(delete(ROTA_CARROS)
                         .queryParam("placa", "HIZ-1234"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
@@ -142,7 +144,7 @@ class CarroControllerTest {
 
         when(service.listarTodos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/"))
+        this.mockMvc.perform(get(ROTA_CARROS.concat("/")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -156,7 +158,7 @@ class CarroControllerTest {
 
         when(service.listarTodos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/"))
+        this.mockMvc.perform(get(ROTA_CARROS.concat("/")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -167,7 +169,7 @@ class CarroControllerTest {
     void deveriaRetornarOsDadosDoCarroCadastradoNoBancoComDeterminadaPlaca() throws Exception {
         when(service.buscarPorPlaca(anyString())).thenReturn(carroModel);
 
-        this.mockMvc.perform(get("/carros").queryParam("placa", "XTP-7888"))
+        this.mockMvc.perform(get(ROTA_CARROS).queryParam("placa", "XTP-7888"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE));
@@ -177,7 +179,7 @@ class CarroControllerTest {
     void deveriaRetornarUmaExcecaoAoTentarBuscarOsDadosDoCarroCadastradoNoBancoComDeterminadaPlaca() throws Exception {
         when(service.buscarPorPlaca(anyString())).thenThrow(NotFoundRegitreException.class);
 
-        this.mockMvc.perform(get("/carros").queryParam("placa", "XTP-7888"))
+        this.mockMvc.perform(get(ROTA_CARROS).queryParam("placa", "XTP-7888"))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
@@ -185,14 +187,14 @@ class CarroControllerTest {
     @Test
     void deveriaRetornarUmaListaContendoTodosOsCarrosSeminovos() throws Exception {
         carroModel.setPlaca("XTP-7888");
-        carroModel.setQuilometragem(service.MAX_QUILOMETRAGEM_PARA_LOCACAO);
+        carroModel.setQuilometragem(MAX_QUILOMETRAGEM_PARA_LOCACAO);
         carros.add(carroModel);
         Pageable pageable = PageRequest.of(0,2);
         Page<CarroModel> pagesRetornadas = new PageImpl<>(carros, pageable, 1);
 
         when(service.buscarTodosSeminovos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/seminovos"))
+        this.mockMvc.perform(get(ROTA_CARROS.concat("/seminovos")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))
@@ -206,7 +208,7 @@ class CarroControllerTest {
 
         when(service.buscarTodosSeminovos(any(Pageable.class))).thenReturn(pagesRetornadas);
 
-        this.mockMvc.perform(get("/carros/seminovos"))
+        this.mockMvc.perform(get(ROTA_CARROS.concat("/seminovos")))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON_VALUE))

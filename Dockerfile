@@ -1,9 +1,6 @@
 # Use uma imagem oficial do JDK 17 como imagem base para construir o projeto
 FROM gradle:7.5.1-jdk17 AS build
 
-# Copie o arquivo .env para o contêiner
-COPY .env /app/.env
-
 # Defina o diretório de trabalho dentro do contêiner
 WORKDIR /app
 

@@ -1,32 +1,38 @@
 version: '3.8'
 
 services:
-  locar-api:
-    container_name: locar-api
-    image: locar-api:latest
-    build:
-      context: .
-    ports:
-      - "${SERVER_PORT}:8080"
-    env_file:
-      - .env
-    depends_on:
-      - locadb
-    networks:
-      - locar-network
-
-  locadb:
+  locar-db:
     image: postgres:latest
-    container_name: locadb
-    restart: unless-stopped
+    container_name: locar-db
+    restart: always
     ports:
       - "${DATABASE_PORT}:5432"
     environment:
       POSTGRES_DB: ${DATABASE_NAME}
       POSTGRES_USER: ${DATABASE_USERNAME}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    env_file:
+      - .env
     volumes:
       - locadb_data:/var/lib/postgresql/data
+    networks:
+      - locar-network
+
+  locar-api:
+    container_name: locar-api
+    image: locar-api:latest
+    restart: always
+    build:
+      context: .
+    environment:
+      DATABASE_HOST: locar-db
+      DATABASE_PORT: 5432
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT}:8080"
+    depends_on:
+      - locar-db
     networks:
       - locar-network
 
